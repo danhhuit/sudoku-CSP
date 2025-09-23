@@ -6,7 +6,7 @@ import random as rand
 import copy as cpy
 from tabnanny import check
 
-import numpy as np
+# import numpy as np
 from collections import deque
 from typing import List, Dict, Tuple, Any
 from abc import ABC, abstractmethod
@@ -360,6 +360,6 @@ class AStarAlgorithm(SudokuAlgorithm):
                 self.board=new_board
                 h_value = self.calculate_heuristic()
                 new_g_value = g_value+1
-                f_value=h_value+new_g_val
+                f_value=h_value+new_g_value
                 heapq.heappush(priority_queue, (f_value, new_g_value, new_board))
         return False
