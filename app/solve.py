@@ -55,7 +55,7 @@ class SudokuAlgorithm:
         for i in range(self.grid_size):
             for j in range(self.grid_size):
                 if self.board[i][j] == 0:
-                    return (i, j)
+                    return i, j
         return None
 
     #dem o trong
@@ -252,7 +252,7 @@ class BackTrackingAlgorithm(SudokuAlgorithm):
 
         result = self._backtracking()
 
-        self.execution_time = time - start_time
+        self.execution_time = time.time() - start_time
         self.is_solved = result
         self.solution = cpy.deepcopy(self.board) if result else None
 
@@ -283,9 +283,9 @@ class BackTrackingAlgorithm(SudokuAlgorithm):
                         best_values = possible_values
 
                         if num_possibilities == 1:
-                            return (i,j,best_values)
+                            return i,j,best_values
         if best_cell:
-            return (*best_cell, best_values)
+            return *best_cell, best_values
         return None
 
     def _backtracking(self):

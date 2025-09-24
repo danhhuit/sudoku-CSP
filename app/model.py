@@ -36,7 +36,7 @@ class SudokuModel:
         self.solution = [[nums[pattern(r,c)] for c in cols] for r in rows]
         self.board = cpy.deepcopy(self.solution)
 
-        squares = side*side
+        # squares = side*side
         min_empty, max_empty = self.DIFFICULTY_LEVELS.get(difficulty, (40, 50))
         empties = rand.randint(min_empty, max_empty)
         coords = [(i,j) for i in range(side) for j in range(side)]
