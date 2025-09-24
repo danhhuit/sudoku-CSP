@@ -1,16 +1,15 @@
-import statistics
 import statistics as stats
 import time
 import math
 import heapq
 import random as rand
 import copy as cpy
-from tabnanny import check
+# from tabnanny import check
 
 # import numpy as np
 from collections import deque
-from typing import List, Dict, Tuple, Any
-from abc import ABC, abstractmethod
+# from typing import List, Dict, Tuple, Any
+# from abc import ABC, abstractmethod
 
 class SudokuAlgorithm:
 
@@ -403,8 +402,8 @@ class SimulatedAnnealing(SudokuAlgorithm):
         for r in range(0, self.grid_size):
             tmp_list = []
             #b1:block 1, b2: block 2
-            b1 = [i+block_size *((r)%block_size) for i in range(0, block_size)]
-            b2 = [i+block_size *math.trunc((r)/block_size) for i in range(0, block_size)]
+            b1 = [i+block_size *(r%block_size) for i in range(0, block_size)]
+            b2 = [i + block_size * math.trunc(r / block_size) for i in range(0, block_size)]
             for i in b1:
                 for j in b2:
                     tmp_list.append([i,j])
@@ -500,7 +499,7 @@ class SimulatedAnnealing(SudokuAlgorithm):
     #tinh gtri sigma ban dau (dua tren do lech chuan cua cac chi phi)
     def _calculate_initial_sigma(self, fixed_cells, list_of_blocks):
         list_of_diff = []
-        cur_board = cpy.deepcopy(self.board)
+        # cur_board = cpy.deepcopy(self.board)
         tmp_board = cpy.deepcopy(self.board)
 
         for i in range(10):
@@ -590,5 +589,12 @@ class SimulatedAnnealing(SudokuAlgorithm):
 
                 if sigma < 0.001:
                     break
-
         return solution_found
+
+def get_solver(algorithm, board, grid_size=9):
+    if algorithm == 'BFS': return BFSAlgorithm(board, grid_size)
+    elif algorithm == 'DFS': return DFSAlgorithm(board, grid_size)
+    elif algorithm == 'BackTracking': return BackTrackingAlgorithm(board, grid_size)
+    elif algorithm == 'SimulatedAnnealing': return SimulatedAnnealing(board, grid_size)
+    elif algorithm == 'A*': return AStarAlgorithm(board, grid_size)
+    else: return ValueError(f"Algorithm {algorithm} not recognized")
