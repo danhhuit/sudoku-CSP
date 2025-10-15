@@ -1,48 +1,50 @@
 import time
-import copy as cpy
+import copy
+
 
 class SudokuController:
+    """Controller class điều phối giữa model và view"""
+
     def __init__(self, model, view, app):
         self.model = model
         self.view = view
         self.app = app
-        self.init_board = cpy.deepcopy(model.board)
+
+        self.initial_board = copy.deepcopy(model.board)
+
         self.view.set_controller(self)
-        self._update_view()
-        self.view.update_lives_display(self.model.lives)
-    # cap nhat view voi trang thai model hien tai
-    def _update_view(self):
-        original_cells = set()
-        for i in range(self.model.grid_size):
-            for j in range(self.model.grid_size):
-                if self.model.board[i][j] != 0:
-                    original_cells.add((i,j))
-        self.view.update_cells(self.model.board, original_cells)
 
-    #bat dau tro choi moi
-    def new_game(self, difficulty, grid_size=9):
+        self._update_view()
+
+        self.view.update_lives_display(self.model.lives)
+
+    def new_game(self, difficulty="medium", grid_size=9):
+        """Bắt đầu trò chơi mới với độ khó và kích thước lưới chỉ định"""
         self.model.grid_size = grid_size
-        self.model.generate_puzzule(difficulty)
+        self.model.generate_puzzle(difficulty)
+        self.initial_board = copy.deepcopy(self.model.board)
         self._update_view()
         self.view.update_lives_display(self.model.lives)
-        self.init_board = cpy.deepcopy(self.model.board)
 
-    #thuc hien nuoc di & cap nhat view
-    def move(self, row, col, num):
+    def make_move(self, row, col, num):
+        """Thực hiện nước đi và cập nhật view"""
+        if getattr(self.model, 'is_paused', False):
+            return
         if (row, col) in self.view.original_cells:
             return
+
         if self.model.game_over():
-            self.view.show_error("Game Over",
-                                 "Trò chơi đã kết thúc")
+            self.view.show_error("Game Over", "Bạn đã hết mạng. Hãy bắt đầu trò chơi mới.")
             return
+
         if self.model.is_correct_move(row, col, num):
             self.model.board[row][col] = num
             self.view.highlight_cell(row, col, self.view.success_color)
+
             if self.model.is_solved():
                 self.model.end_time = time.time()
                 self.model.completion_time = self.model.end_time - self.model.start_time
                 self.view.show_success(self.model.completion_time)
-
         else:
             self.model.lives -= 1
             self.view.update_lives_display(self.model.lives)
@@ -57,104 +59,120 @@ class SudokuController:
 
             self.view.master.after(1500, lambda: self.clear_cell(row, col))
 
-    #xoa o cu the
-    def clear_cell(self, row, col):
-        if (row, col) not in self.view.original_cells:
-            self.model.board[row][col] = 0
-            self.view.cell_vars[row][col].set("")
-            self.view.highlight_cell(row, col, "white")
+    def _update_view(self):
+        """Cập nhật view với trạng thái model hiện tại"""
+        original_cells = set()
+        for i in range(self.model.grid_size):
+            for j in range(self.model.grid_size):
+                if self.model.board[i][j] != 0:
+                    original_cells.add((i, j))
 
-    #cung cap goi y
+        self.view.update_board(self.model.board, original_cells)
+
     def get_hint(self):
+        """Cung cấp gợi ý cho người dùng"""
         if self.model.game_over():
-            self.view.show_error("Game Over",
-                                 "Trò chơi đã kết thúc")
+            self.view.show_error("Game Over", "Bạn đã hết mạng. Hãy bắt đầu trò chơi mới.")
             return
 
         hint = self.model.get_hint()
         if hint:
             row, col, value = hint
-            self.view.cell_vars[row][col].set(str(value))
+            if self.model.grid_size == 16 and value > 9:
+                display_value = chr(ord('A') + value - 10)
+                self.view.cell_vars[row][col].set(display_value)
+            else:
+                self.view.cell_vars[row][col].set(str(value))
 
             self.model.board[row][col] = value
-            self.view.hightlight_cell(row, col, self.view.highlight_color)
+            self.view.highlight_cell(row, col, self.view.highlight_color)
 
-            self.view.update_status(f"Gợi ý: Đặt {value} tại vị trí ({row+1}, {col+1})")
+            display_value = value if value <= 9 else chr(ord('A') + value - 10)
+            self.view.update_status(f"Gợi ý: Đặt {display_value} tại vị trí ({row + 1},{col + 1})")
 
             if self.model.is_solved():
                 self.model.end_time = time.time()
                 self.model.completion_time = self.model.end_time - self.model.start_time
                 self.view.show_success(self.model.completion_time)
-
         else:
-            self.view.show_message("Không có gợi ý",
-                                   "Không còn ô trống để cung cấp gợi ý.")
+            self.view.show_message("Không có gợi ý", "Không còn ô trống để cung cấp gợi ý.")
 
-    #kiem tra giai phap va danh dau loi
     def check_solution(self):
-        flag = False
+        """Kiểm tra giải pháp hiện tại và đánh dấu lỗi"""
+        errors_found = False
         for i in range(self.model.grid_size):
             for j in range(self.model.grid_size):
-                if self.model.board[i][j] != 0 or (i, j) in self.view.original_cells:
+                if self.model.board[i][j] == 0 or (i, j) in self.view.original_cells:
                     continue
 
                 if not self.model.is_correct_move(i, j, self.model.board[i][j]):
                     self.view.highlight_cell(i, j, self.view.error_color)
-                    flag = True
+                    errors_found = True
 
-        if flag:
-            self.view.show_message( "Kết quả kiểm tra",
-                                    "Có lỗi trong cách giải của bạn." +
-                                    "Các ô không đúng được đánh dấu màu đỏ.")
+        if errors_found:
+            self.view.show_message("Kết quả kiểm tra",
+                                   "Có lỗi trong giải pháp của bạn. Các ô không đúng được đánh dấu màu đỏ.")
         else:
             if self.model.is_solved():
                 self.model.end_time = time.time()
                 self.model.completion_time = self.model.end_time - self.model.start_time
                 self.view.show_success(self.model.completion_time)
             else:
-                self.view.show_message("Kết quả kiểm tra",
-                                       "Không tìm thấy lỗi trong cách giải của bạn.")
+                self.view.show_message("Kết quả kiểm tra", "Tốt! Không tìm thấy lỗi trong giải pháp hiện tại của bạn.")
 
-    #giai toan bo cau do
     def solve_puzzle(self):
-        if self.view.cofirm_dialog("Hiển thị kết quả",
-                                   "Bạn chắc chắn muốn xem kết quả?"):
+        """Giải toàn bộ câu đố"""
+        if self.view.confirm_dialog("Giải câu đố",
+                                    "Bạn có chắc muốn xem lời giải? Điều này sẽ kết thúc trò chơi hiện tại."):
             for i in range(self.model.grid_size):
                 for j in range(self.model.grid_size):
                     if self.model.board[i][j] == 0:
                         value = self.model.solution[i][j]
                         self.model.board[i][j] = value
 
-                        self.view.cell_vars[i][j].set(str(value))
-                        self.view.highlight_cell(i, j, self.view.hightlight_color)
+                        if self.model.grid_size == 16 and value > 9:
+                            self.view.cell_vars[i][j].set(chr(ord('A') + value - 10))
+                        else:
+                            self.view.cell_vars[i][j].set(str(value))
+
+                        self.view.highlight_cell(i, j, self.view.highlight_color)
 
             self.model.game_active = False
-            self.view.update_status("Kết quả đã được hiển thị. Bắt đầu trò chơi mới.")
+            self.view.update_status("Câu đố đã được giải. Bắt đầu trò chơi mới để chơi lại.")
 
-    #xoa input & algorithm, khoi phuc bang
     def clear_board(self):
-        if self.view.confirm_dialog("Xóa bảng",
-                                    "Bạn chắc chắn muốn xóa bảng?"):
-            self.model.board = cpy.deepcopy(self.model.board)
+        """Xóa tất cả đầu vào của người dùng và thuật toán, khôi phục bảng ban đầu"""
+        if self.view.confirm_dialog("Xóa bảng", "Bạn có chắc muốn xóa tất cả đầu vào và khôi phục bảng ban đầu?"):
+            self.model.board = copy.deepcopy(self.initial_board)
             self._update_view()
             self.view.update_status("Đã khôi phục bảng về trạng thái ban đầu.")
 
-    #giai bang thuat toan (backtracking, forward checking, dfs, bfs, A* search)
+    def clear_cell(self, row, col):
+        """Xóa một ô cụ thể"""
+        if getattr(self.model, 'is_paused', False):
+            return
+        if (row, col) not in self.view.original_cells:
+            self.model.board[row][col] = 0
+            self.view.cell_vars[row][col].set("")
+            self.view.highlight_cell(row, col, "white")
+
     def solve_with_algorithm(self, algorithm):
+        """
+        Giải Sudoku bằng thuật toán được chọn.
+        """
         if self.model.game_over():
-            self.view.show_error("Game Over",
-                                 "Trò chơi đã kết thúc.")
+            self.view.show_error("Game Over", "Bạn đã hết mạng. Hãy bắt đầu trò chơi mới.")
             return
 
-        self.view.update_status(f"Đang giải bằng thuật toán {algorithm}")
+        self.view.update_status(f"Đang giải bằng thuật toán {algorithm}...")
 
-        solution, metrics = self.model.sole_with_algorithm(algorithm)
+        solution, metrics = self.model.solve_with_algorithm(algorithm)
 
         if solution:
             self.model.board = solution
             self._update_view()
-            self.view.update_status(f"Đã giải xong bằng thuật toán {algorithm}")
+            self.view.update_status(f"Đã giải thành công bằng thuật toán {algorithm}!")
             self.view.show_algorithm_comparison(metrics)
         else:
             self.view.show_error("Không tìm thấy lời giải",
-                                 f"Thuật toán {algorithm} không có lời giải cho câu đố này")
+                                 f"Thuật toán {algorithm} không tìm thấy lời giải cho câu đố này.")
