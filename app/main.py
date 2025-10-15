@@ -8,7 +8,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from solve import SudokuSolver
-
+test
 
 class SudokuApp:
     def __init__(self, root):
@@ -47,4 +47,5 @@ def main():
 
 
 if __name__ == "__main__":
+
     main()
