@@ -1,1 +1,3 @@
 # sudoku-CSP
+"Sửa openai key ở controller"
+"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"
