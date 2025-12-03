@@ -8,8 +8,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from PIL import Image, ImageTk
 from pathlib import Path
 
-from app import controller
-
 
 class SelectionScreen:
     """Màn hình chọn kích thước lưới và độ khó"""
