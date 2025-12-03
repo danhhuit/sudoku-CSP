@@ -1,3 +1,7 @@
 # sudoku-CSP
 "Sửa openai key ở controller"
-"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"
+"s####k-proj-###-LJ_YY9orkNL8EesWYSmQjmy####s3uz97LHsO8XLeDewN-vk2a_1xjWc6AZSSh71_CIh####7oJJnW_T5T3BlbkFJLs9clB1yF0E8Ix8BrMpe_hd7_wyMB7BIam0ISrv10####lgBoIpfxcvDUITNAi-####hNWLdQiu###oL4-isA"
+Xóa các dấu # để chạy
+Nếu API ko hoạt động, truy cập trang web để lấy API
+https://platform.openai.com/api-keys
+Đăng nhập => Create New Secret Key
