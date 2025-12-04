@@ -56,6 +56,7 @@ class SudokuController:
 
     Hãy trả lời rõ ràng, ngắn gọn, tiếng Việt.
     Nếu được, giải thích bước tiếp theo cần làm.
+    **Sử dụng tiêu đề lớn với icon ⭐ ở trước, tiếp theo các nếu có các tiêu đề thì dùng 💡, không sử dung ### hay ** ở các tiêu đề, trong các câu **
     """
 
         try:
